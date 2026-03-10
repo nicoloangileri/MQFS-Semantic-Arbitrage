@@ -1,7 +1,5 @@
 # MQFS-Semantic-Arbitrage
 <div align="center">
-  
-# MQFS: Sentiment-Adjusted Statistical Arbitrage Engine
 **A foundational Quantitative Research architecture by the Mediterranean Quantitative Finance Society.**
 
 </div>
