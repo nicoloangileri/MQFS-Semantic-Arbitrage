@@ -1,0 +1,95 @@
+"""
+MQFS - Mediterranean Quantitative Finance Society
+Founder & Lead Researcher: Nicolò
+
+Project: Sentiment-Adjusted Statistical Arbitrage Engine
+Description: A foundational architecture for a pairs trading strategy that dynamically 
+adjusts its z-score entry/exit thresholds based on real-time NLP sentiment vectors.
+"""
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from typing import Tuple, Optional
+
+class SemanticStatArb:
+    def __init__(self, asset_x: pd.Series, asset_y: pd.Series, lookback_window: int = 60):
+        """
+        Initializes the Statistical Arbitrage Engine.
+        """
+        self.asset_x = asset_x
+        self.asset_y = asset_y
+        self.lookback = lookback_window
+        self.hedge_ratio = 0.0
+        self.spread = pd.Series(dtype=float)
+        
+    def calculate_cointegration(self) -> Tuple[float, float]:
+        """
+        Calculates the hedge ratio using Ordinary Least Squares (OLS).
+        Returns the hedge ratio and the p-value of the spread.
+        """
+        x_const = sm.add_constant(self.asset_x)
+        model = sm.OLS(self.asset_y, x_const).fit()
+        self.hedge_ratio = model.params.iloc[1]
+        
+        # Calculate the spread
+        self.spread = self.asset_y - (self.hedge_ratio * self.asset_x)
+        
+        # Augmented Dickey-Fuller test for stationarity
+        adf_result = sm.tsa.stattools.adfuller(self.spread)
+        p_value = adf_result[1]
+        
+        return self.hedge_ratio, p_value
+
+    def generate_sentiment_adjusted_signals(self, sentiment_vector: np.ndarray, base_z_threshold: float = 2.0) -> pd.DataFrame:
+        """
+        Generates trading signals. The standard z-score threshold is dynamically 
+        adjusted by the NLP sentiment vector (e.g., highly positive news reduces 
+        the threshold for taking a long position).
+        """
+        # Calculate rolling mean and standard deviation of the spread
+        rolling_mean = self.spread.rolling(window=self.lookback).mean()
+        rolling_std = self.spread.rolling(window=self.lookback).std()
+        
+        # Calculate Z-Score
+        z_score = (self.spread - rolling_mean) / rolling_std
+        
+        # Dynamic Threshold Adjustment based on NLP Sentiment (-1.0 to 1.0)
+        # Assuming sentiment_vector aligns with the temporal index
+        adjusted_threshold_long = -base_z_threshold + (sentiment_vector * 0.5)
+        adjusted_threshold_short = base_z_threshold + (sentiment_vector * 0.5)
+        
+        signals = pd.DataFrame(index=self.spread.index)
+        signals['Z_Score'] = z_score
+        signals['Sentiment'] = sentiment_vector
+        signals['Long_Signal'] = np.where(z_score < adjusted_threshold_long, 1, 0)
+        signals['Short_Signal'] = np.where(z_score > adjusted_threshold_short, -1, 0)
+        
+        return signals
+
+# ==========================================
+# Example Execution (Backtest Simulation)
+# ==========================================
+if __name__ == "__main__":
+    # Simulated Market Data (100 days)
+    np.random.seed(42)
+    dates = pd.date_range(start="2026-01-01", periods=100)
+    
+    # Simulating two highly correlated financial assets
+    asset_a = pd.Series(np.cumsum(np.random.normal(0, 1, 100)) + 100, index=dates)
+    asset_b = asset_a * 1.5 + np.random.normal(0, 0.5, 100)
+    
+    # Simulating an NLP sentiment score array (-1.0 to 1.0) extracted from financial news
+    mock_sentiment = np.random.uniform(-1, 1, 100)
+    
+    # Initialize MQFS Engine
+    engine = SemanticStatArb(asset_x=asset_a, asset_y=asset_b, lookback_window=20)
+    
+    # Run Cointegration
+    hedge, p_val = engine.calculate_cointegration()
+    print(f"[MQFS Research] Hedge Ratio: {hedge:.4f} | Spread p-value: {p_val:.4f}")
+    
+    # Generate Signals
+    trade_signals = engine.generate_sentiment_adjusted_signals(sentiment_vector=mock_sentiment)
+    print("\n[MQFS Research] Recent Output Signals:")
+    print(trade_signals.tail())
