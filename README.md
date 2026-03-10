@@ -24,7 +24,7 @@ The `SemanticStatArb` class is built with institutional-grade logic, focusing on
 - **Data Manipulation:** `pandas`, `numpy`
 - **Statistical Modeling:** `statsmodels` (Time Series Analysis)
 
-## 🚀 Usage (Simulation Mode)
+##  Usage (Simulation Mode)
 The script includes a built-in Monte Carlo simulation module to test the logic without requiring live market data feeds. 
 
 
