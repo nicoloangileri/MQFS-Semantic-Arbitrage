@@ -6,9 +6,9 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Version](https://img.shields.io/badge/Version-3.1-orange)
-![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)
 
-A production-grade **pairs trading engine** that fuses classical statistical arbitrage (Engle-Granger cointegration + rolling z-score mean-reversion) with real-time **FinBERT NLP sentiment** scored on financial news headlines fetched from public RSS feeds — no API key required.
+
+ **pairs trading engine** that fuses classical statistical arbitrage (Engle-Granger cointegration + rolling z-score mean-reversion) with real-time **FinBERT NLP sentiment** scored on financial news headlines fetched from public RSS feeds — no API key required.
 
 Trading thresholds are dynamically adjusted based on the directional *strength* of market sentiment: the engine becomes more aggressive when the market has a clear view and more conservative during noisy, neutral periods.
 
